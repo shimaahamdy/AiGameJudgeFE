@@ -1,0 +1,39 @@
+.chat-page {
+    max-width: 960px;
+}
+
+.chat-window .text-muted {
+    color: #6b7280;
+}
+
+.message-player {
+    text-align: right;
+}
+
+.message-npc {
+    text-align: left;
+}
+
+.message-bubble {
+    display: inline-block;
+    max-width: 85%;
+}
+
+.message-player-bubble {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+.message-npc-bubble {
+    background: hsl(var(--muted));
+    color: hsl(var(--foreground));
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+}
+
+/* PDF preview iframe styling */
+.fixed iframe {
+    border: none;
+}

@@ -7,12 +7,28 @@
           {{ npc.npcName }}
         </h3>
         <p class="text-sm text-muted-foreground mt-1">ID: {{ npc.npcId }}</p>
+        <p class="text-sm text-muted-foreground mt-1">Tone: {{ npc.overallTone ?? npc.tone }}</p>
+        <div class="mt-2 flex items-center gap-2">
+          <span
+            [class]="'inline-flex px-2 py-1 rounded text-xs font-medium ' + (npc.inCharacter ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400')">
+            In-Character: {{ npc.inCharacter ? 'Yes' : 'No' }}
+          </span>
+          <span *ngIf="npc.escalationTooFast"
+            class="inline-flex px-2 py-1 rounded text-xs font-medium bg-red-500/20 text-red-400">
+            Escalation: Too fast
+          </span>
+          <span *ngIf="!npc.escalationTooFast"
+            class="inline-flex px-2 py-1 rounded text-xs font-medium bg-muted text-muted-foreground">
+            Escalation: OK
+          </span>
+        </div>
+        <p *ngIf="npc.summary" class="text-sm text-muted-foreground mt-2">{{ npc.summary }}</p>
       </div>
       <app-npc-badge [tone]="npc.tone"></app-npc-badge>
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-2 gap-4">
       <!-- Fairness Score -->
       <div>
         <p class="text-xs text-muted-foreground font-medium mb-2">
@@ -25,54 +41,30 @@
           <span class="text-xs text-muted-foreground">/10</span>
         </div>
         <div class="fairness-score-bar mt-2">
-          <div
-            [class]="'fairness-score-fill bg-gradient-to-r ' + fairnessColor"
-            [style.width.%]="fairnessPercentage"
-          ></div>
+          <div [class]="'fairness-score-fill bg-gradient-to-r ' + fairnessColor" [style.width.%]="fairnessPercentage">
+          </div>
         </div>
       </div>
 
       <!-- In-Character Status -->
-      <div>
-        <p class="text-xs text-muted-foreground font-medium mb-2">
-          In-Character
-        </p>
-        <div class="flex items-center">
-          <span
-            [class]="'inline-flex px-2 py-1 rounded text-xs font-medium ' + (npc.inCharacter ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400')"
-          >
-            {{ npc.inCharacter ? "Yes" : "No" }}
-          </span>
-        </div>
-      </div>
 
-      <!-- Message Count -->
-      <div>
-        <p class="text-xs text-muted-foreground font-medium mb-2">
-          Messages
-        </p>
-        <p class="text-lg font-semibold text-foreground">
-          {{ npc.messageCount }}
-        </p>
-      </div>
     </div>
 
-    <!-- Warnings and Action -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-border">
-      <div *ngIf="npc.escalationTooFast" class="flex items-center gap-2 text-red-400">
-        <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
-        <span class="text-sm font-medium">Escalation Warning</span>
-      </div>
-      <div *ngIf="!npc.escalationTooFast"></div>
-
-      <button
-        (click)="onViewConversation()"
-        class="w-full sm:w-auto px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
-      >
-        View Conversation
-      </button>
+  </div>
+  <!-- Warnings and Action -->
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-border">
+    <div *ngIf="npc.escalationTooFast" class="flex items-center gap-2 text-red-400">
+      <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span class="text-sm font-medium">Escalation Warning</span>
     </div>
+    <div *ngIf="!npc.escalationTooFast"></div>
+
+    <button (click)="onViewConversation()"
+      class="w-full sm:w-auto px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium">
+      View Conversation
+    </button>
   </div>
 </div>

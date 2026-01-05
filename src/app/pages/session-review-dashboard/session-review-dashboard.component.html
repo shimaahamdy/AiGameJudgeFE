@@ -17,12 +17,9 @@
 
     <!-- Session Selector -->
     <div *ngIf="(sessions$ | async) as sessions">
-      <app-session-selector
-        *ngIf="sessions.length > 0"
-        [sessions]="sessions"
+      <app-session-selector *ngIf="sessions.length > 0" [sessions]="sessions"
         [selectedSessionId]="(selectedSessionId$ | async) || null"
-        (selectSession)="onSelectSession($event)"
-      ></app-session-selector>
+        (selectSession)="onSelectSession($event)"></app-session-selector>
     </div>
 
     <!-- Loading State -->
@@ -47,17 +44,17 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <app-npc-row
-            *ngFor="let npc of summaries"
-            [npc]="npc"
-            (viewConversation)="onViewConversation($event)"
-          ></app-npc-row>
+          <app-npc-row *ngFor="let npc of summaries" [npc]="npc"
+            (viewConversation)="onViewConversation($event)"></app-npc-row>
         </div>
       </div>
     </div>
 
+    <!-- Raw JSON output removed -->
+
     <!-- Empty State -->
-    <div *ngIf="(selectedSessionId$ | async) && (npcSummaries$ | async)?.length === 0 && !(loading$ | async)" class="flex items-center justify-center py-12">
+    <div *ngIf="(selectedSessionId$ | async) && (npcSummaries$ | async)?.length === 0 && !(loading$ | async)"
+      class="flex items-center justify-center py-12">
       <div class="text-center">
         <p class="text-muted-foreground mb-2">
           No NPC summaries available for this session
@@ -70,10 +67,6 @@
   </div>
 
   <!-- Conversation Modal -->
-  <app-view-conversation-modal
-    [isOpen]="isModalOpen"
-    [conversation]="selectedConversation"
-    [isLoading]="isLoadingConversation"
-    (close)="onCloseModal()"
-  ></app-view-conversation-modal>
+  <app-view-conversation-modal [isOpen]="isModalOpen" [conversation]="selectedConversation"
+    [isLoading]="isLoadingConversation" (close)="onCloseModal()"></app-view-conversation-modal>
 </div>

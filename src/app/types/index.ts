@@ -19,7 +19,37 @@ export interface NPCSummary {
   fairnessScore: number; // 0-10
   inCharacter: boolean;
   escalationTooFast: boolean;
-  messageCount: number;
+  summary?: string;
+  /** original overall tone string returned by session summary API */
+  overallTone?: string;
+}
+
+/**
+ * NPC overview returned by the overview API
+ */
+export interface NPCOverview {
+  npcId: string;
+  totalSessions: number;
+  averageFairness: number;
+  toneDistribution: {
+    friendly: number;
+    neutral: number;
+    hostile: number;
+  };
+  inCharacterRate: number;
+  escalationRate: number;
+}
+
+/**
+ * NPC summary for a single session
+ */
+export interface NPCSessionSummary {
+  npcId: string;
+  overallTone: 'friendly' | 'neutral' | 'hostile' | string;
+  inCharacter: boolean;
+  fairnessScore: number;
+  escalationTooFast: boolean;
+  summary: string;
 }
 
 /**

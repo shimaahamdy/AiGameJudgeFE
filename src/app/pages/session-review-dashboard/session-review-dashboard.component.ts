@@ -18,7 +18,7 @@ export class SessionReviewDashboardComponent implements OnInit {
   selectedConversation: Conversation | null = null;
   isLoadingConversation = false;
 
-  constructor(public sessionsService: SessionsService) {}
+  constructor(public sessionsService: SessionsService) { }
 
   get sessions$() {
     return this.sessionsService.sessions$;

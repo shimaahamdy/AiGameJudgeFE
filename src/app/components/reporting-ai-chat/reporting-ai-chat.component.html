@@ -1,0 +1,89 @@
+<section class="chat-page max-w-2xl">
+    <h1 class="text-2xl font-bold mb-4">Reporting AI Agent</h1>
+
+    <div class="chat-window border rounded p-4 mb-4 bg-card text-card-foreground" style="height:400px; overflow:auto;">
+        <div *ngFor="let m of messages" [ngClass]="m.sender === 'user' ? 'message-player mb-3' : 'message-npc mb-3'">
+            <div class="message-bubble"
+                [ngClass]="m.sender === 'user' ? 'message-player-bubble' : 'message-npc-bubble'">
+                <div class="text-sm">{{ m.text }}</div>
+                <div class="text-xs text-muted">{{ m.time }}</div>
+                <!-- charts, if any -->
+                <div *ngIf="m.charts?.length" class="mt-3 space-y-3">
+                    <div *ngFor="let c of m.charts" class="p-3 rounded bg-popover text-popover-foreground">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="font-semibold">{{ c.title }}</div>
+                            <div class="text-xs text-muted">{{ c.type }}</div>
+                        </div>
+
+                        <!-- Bar chart -->
+                        <div *ngIf="c.type === 'bar'">
+                            <div *ngFor="let label of c.labels; let i = index" class="flex items-center gap-2 mb-1">
+                                <div class="text-xs w-24 text-muted-foreground">{{ label }}</div>
+                                <div class="flex-1 bg-muted rounded h-4 overflow-hidden">
+                                    <div class="h-4 bg-primary" [style.width.%]="computeBarWidth(c, i)"></div>
+                                </div>
+                                <div class="text-xs w-12 text-right">{{ c.values[i] }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Line chart (simple sparkline) -->
+                        <div *ngIf="c.type === 'line'">
+                            <svg class="w-full h-20" viewBox="0 0 100 20" preserveAspectRatio="none">
+                                <polyline fill="none" stroke="#60a5fa" stroke-width="1.5"
+                                    [attr.points]="computePolylinePoints(c)">
+                                </polyline>
+                            </svg>
+                            <div class="flex text-xs text-muted-foreground justify-between">
+                                <div *ngFor="let l of c.labels; let i = index" class="truncate"
+                                    [ngStyle]="{'width': (100 / c.labels.length) + '%'}">{{ l }}
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <!-- Pie chart (simple legend with percentages) -->
+                        <div *ngIf="c.type === 'pie'">
+                            <div *ngIf="c.values?.length" class="grid grid-cols-1 gap-1">
+                                <div *ngFor="let label of c.labels; let i = index"
+                                    class="flex items-center justify-between text-sm">
+                                    <div class="truncate">{{ label }}</div>
+                                    <div class="ml-2 text-muted-foreground">{{ computePercentage(c, i) }}%</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Report download -->
+                <div *ngIf="m.report" class="mt-2">
+                    <button (click)="downloadReport(m.report)"
+                        class="px-3 py-1 border rounded bg-sidebar text-sidebar-foreground text-sm">Download
+                        Report</button>
+                    <button *ngIf="(m.report.fileName || '').toLowerCase().endsWith('.pdf')"
+                        (click)="previewReport(m.report)"
+                        class="px-3 py-1 border rounded bg-muted text-muted-foreground text-sm">Preview PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form (ngSubmit)="send()" class="flex gap-2">
+        <input [(ngModel)]="draft" name="message" class="flex-1 p-2 border rounded bg-popover text-popover-foreground"
+            placeholder="Ask the reporting AI..." />
+        <button type="submit" class="px-4 py-2 border rounded bg-sidebar text-sidebar-foreground">Send</button>
+    </form>
+</section>
+
+<!-- PDF preview modal -->
+<div *ngIf="pdfPreviewUrl" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div class="w-11/12 md:w-3/4 lg:w-2/3 h-5/6 bg-card rounded shadow-lg overflow-hidden">
+        <div class="flex items-center justify-between p-3 border-b border-border">
+            <div class="font-medium">{{ pdfPreviewName }}</div>
+            <button (click)="closePdfPreview()"
+                class="px-3 py-1 bg-destructive text-destructive-foreground rounded">Close</button>
+        </div>
+        <iframe [src]="pdfPreviewUrl" class="w-full h-full" frameborder="0"></iframe>
+    </div>
+</div>

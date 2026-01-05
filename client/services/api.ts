@@ -2,34 +2,30 @@ import { Session, NPCSummary, Conversation } from "@/types";
 
 /**
  * Fetch all available sessions
- * Replace the mock data with real API calls
  */
 export async function fetchSessions(): Promise<Session[]> {
-  // Mock data - replace with real API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: "session-001",
-          name: "Tavern Encounter",
-          timestamp: "2024-01-15T14:30:00Z",
-          playerName: "Aelindor",
-        },
-        {
-          id: "session-002",
-          name: "Dragon's Lair",
-          timestamp: "2024-01-14T10:15:00Z",
-          playerName: "Aelindor",
-        },
-        {
-          id: "session-003",
-          name: "Market Negotiation",
-          timestamp: "2024-01-13T16:45:00Z",
-          playerName: "Aelindor",
-        },
-      ]);
-    }, 300);
-  });
+  // Fetch recent conversation entries and derive unique sessions
+  const resp = await fetch(`http://localhost:5034/api/Session`);
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch sessions: ${resp.status}`);
+  }
+
+  const items: Array<Record<string, any>> = await resp.json();
+
+  // Deduplicate by SessionId and pick the latest timestamp
+  const map = new Map<string, Record<string, any>>();
+  for (const it of items) {
+    const sid = String(it.SessionId ?? it.sessionId ?? "");
+    if (!sid) continue;
+    const tsRaw = it.Timestamp ?? it.timestamp ?? it.CreatedAt ?? it.createdAt ?? null;
+    const ts = tsRaw ? new Date(tsRaw).toISOString() : new Date().toISOString();
+    const existing = map.get(sid);
+    if (!existing || (existing.timestamp && ts > existing.timestamp)) {
+      map.set(sid, { id: sid, name: sid, timestamp: ts, playerName: String(it.PlayerId ?? it.playerId ?? "") });
+    }
+  }
+
+  return Array.from(map.values()) as Session[];
 }
 
 /**
@@ -39,8 +35,8 @@ export async function fetchNPCSummaries(
   sessionId: string
 ): Promise<NPCSummary[]> {
   // Call the server API which exposes SessionNpcSummaryDto items
-  // Endpoint expected: GET /api/sessions/summary/{sessionId}
-  const resp = await fetch(`/api/sessions/summary/${encodeURIComponent(
+  // Backend endpoint: GET /api/npcs/sessions/summary/{sessionId}
+  const resp = await fetch(`/api/npcs/sessions/summary/${encodeURIComponent(
     sessionId
   )}`);
   if (!resp.ok) {
@@ -59,7 +55,7 @@ export async function fetchNPCSummaries(
     npcName: d.NpcId, // server does not return a display name; use id as fallback
     tone:
       d.OverallTone === "friendly" || d.OverallTone === "neutral" ||
-      d.OverallTone === "hostile"
+        d.OverallTone === "hostile"
         ? d.OverallTone
         : "neutral",
     fairnessScore: Number(d.FairnessScore) || 0,
@@ -76,10 +72,9 @@ export async function fetchConversation(
   sessionId: string,
   npcId: string
 ): Promise<Conversation> {
-  // Call the server endpoint returning ConversationTurnDto[]
-  // Endpoint: GET /api/sessions/{sessionId}/conversation/{npcId}
+  // Backend endpoint: GET /api/npcs/sessions/{sessionId}/{npcId}
   const resp = await fetch(
-    `/api/sessions/${encodeURIComponent(sessionId)}/conversation/${encodeURIComponent(
+    `/api/npcs/sessions/${encodeURIComponent(sessionId)}/${encodeURIComponent(
       npcId
     )}`
   );
@@ -93,12 +88,9 @@ export async function fetchConversation(
   // Map to client Conversation shape
   const messages = turns.map((t, idx) => ({
     id: `msg-${idx + 1}`,
-    timestamp:
-      typeof t.Timestamp === "string"
-        ? t.Timestamp
-        : t.Timestamp?.toString?.() ?? new         pnpm install        pnpm devDate().toISOString(),
-    sender: t.Speaker === "npc" ? "npc" : "player",
-    content: String(t.Message ?? ""),
+    timestamp: typeof t.Timestamp === "string" ? t.Timestamp : (t.Timestamp ? new Date(t.Timestamp).toISOString() : new Date().toISOString()),
+    sender: (t.Speaker || t.speaker) === "npc" ? "npc" : "player",
+    content: String(t.Message ?? t.message ?? ""),
   }));
 
   return {

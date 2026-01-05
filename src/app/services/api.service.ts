@@ -8,33 +8,28 @@ import { Session, NPCSummary, Conversation } from '../types';
   providedIn: 'root'
 })
 export class ApiService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Fetch all available sessions
    */
   fetchSessions(): Observable<Session[]> {
-    // Mock data - replace with real API call
-    return of([
-      {
-        id: "session-001",
-        name: "Tavern Encounter",
-        timestamp: "2024-01-15T14:30:00Z",
-        playerName: "Aelindor",
-      },
-      {
-        id: "session-002",
-        name: "Dragon's Lair",
-        timestamp: "2024-01-14T10:15:00Z",
-        playerName: "Aelindor",
-      },
-      {
-        id: "session-003",
-        name: "Market Negotiation",
-        timestamp: "2024-01-13T16:45:00Z",
-        playerName: "Aelindor",
-      },
-    ]);
+    return this.http.get<Array<Record<string, any>>>('http://localhost:5034/api/Session')
+      .pipe(
+        map((dtoList) => {
+          return dtoList.map((d) => {
+            return {
+              id: d['sessionId'] as string,
+              name: d['sessionId'] as string,
+              timestamp: d['createdAt'] as string,
+              playerName: "Player",
+            };
+          });
+        }),
+        catchError((err) => {
+          return throwError(() => new Error(`Failed to fetch sessions: ${err.status || 'Unknown error'}`));
+        })
+      );
   }
 
   /**
@@ -53,13 +48,12 @@ export class ApiService {
               npcName: npcId,
               tone:
                 overallTone === "friendly" || overallTone === "neutral" ||
-                overallTone === "hostile"
+                  overallTone === "hostile"
                   ? (overallTone as "friendly" | "neutral" | "hostile")
                   : "neutral",
               fairnessScore: Number(d['FairnessScore']) || 0,
               inCharacter: Boolean(d['InCharacter']),
               escalationTooFast: Boolean(d['EscalationTooFast']),
-              messageCount: 0,
             };
           });
         }),
@@ -73,23 +67,24 @@ export class ApiService {
    * Fetch full conversation between player and NPC
    */
   fetchConversation(sessionId: string, npcId: string): Observable<Conversation> {
+    // NEW endpoint format: http://localhost:5034/api/Session/session-conversation/{session_id}/{npc_id}
     return this.http.get<Array<Record<string, any>>>(
-      `/api/sessions/${encodeURIComponent(sessionId)}/conversation/${encodeURIComponent(npcId)}`
+      `http://localhost:5034/api/Session/session-conversation/${encodeURIComponent(sessionId)}/${encodeURIComponent(npcId)}`
     )
       .pipe(
         map((turns) => {
-          const messages = turns.map((t, idx) => {
-            const timestamp = typeof t['Timestamp'] === "string"
-              ? t['Timestamp'] as string
-              : (t['Timestamp']?.toString?.() ?? new Date().toISOString());
-            const speaker = t['Speaker'] as string;
-            const sender: "player" | "npc" = speaker === "npc" ? "npc" : "player";
-            
+          const messages = (turns || []).map((t, idx) => {
+            const timestamp = typeof t['timestamp'] === 'string'
+              ? (t['timestamp'] as string)
+              : (t['Timestamp'] as string) || new Date().toISOString();
+            const speaker = String(t['speaker'] ?? t['Speaker'] ?? '').toLowerCase();
+            const sender: 'player' | 'npc' = speaker === 'npc' ? 'npc' : 'player';
+
             return {
               id: `msg-${idx + 1}`,
-              timestamp: timestamp,
-              sender: sender,
-              content: String(t['Message'] ?? ""),
+              timestamp,
+              sender,
+              content: String(t['message'] ?? t['Message'] ?? ''),
             };
           });
 
@@ -97,12 +92,59 @@ export class ApiService {
             sessionId,
             npcId,
             npcName: npcId,
-            playerName: "",
+            playerName: '',
             messages,
-          };
+          } as Conversation;
         }),
         catchError((err) => {
           return throwError(() => new Error(`Failed to fetch conversation: ${err.status || 'Unknown error'}`));
+        })
+      );
+  }
+
+  /**
+   * Fetch NPC overview for all NPCs
+   */
+  fetchNPCOverviewAll(): Observable<any[]> {
+    return this.http.get<Array<Record<string, any>>>('http://localhost:5034/api/npcs/overview/all')
+      .pipe(
+        map((list) => {
+          return list.map((d) => ({
+            npcId: String(d['npcId'] ?? d['NpcId'] ?? d['npcID'] ?? ''),
+            totalSessions: Number(d['totalSessions'] ?? 0),
+            averageFairness: Number(d['averageFairness'] ?? d['averageFairness'] ?? 0),
+            toneDistribution: d['toneDistribution'] ?? d['toneDistribution'] ?? { friendly: 0, neutral: 0, hostile: 0 },
+            inCharacterRate: Number(d['inCharacterRate'] ?? 0),
+            escalationRate: Number(d['escalationRate'] ?? 0),
+          }));
+        }),
+        catchError((err) => {
+          return throwError(() => new Error(`Failed to fetch NPC overview: ${err.status || 'Unknown error'}`));
+        })
+      );
+  }
+
+  /**
+   * Send a message to the reporting AI agent and receive structured response
+   */
+  postReportingAgentChat(message: string): Observable<any> {
+    const payload = { message };
+    return this.http.post<Record<string, any>>('http://localhost:5034/api/reporting-agent/chat', payload)
+      .pipe(
+        catchError((err) => {
+          return throwError(() => new Error(`Failed to call reporting agent: ${err.status || 'Unknown error'}`));
+        })
+      );
+  }
+
+  /**
+   * Fetch NPC summaries for a specific session (session-level NPC output)
+   */
+  fetchNPCSessionSummaries(sessionId: string): Observable<Array<Record<string, any>>> {
+    return this.http.get<Array<Record<string, any>>>(`http://localhost:5034/api/npcs/sessions/summary/${encodeURIComponent(sessionId)}`)
+      .pipe(
+        catchError((err) => {
+          return throwError(() => new Error(`Failed to fetch NPC session summaries: ${err.status || 'Unknown error'}`));
         })
       );
   }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { Session, NPCSummary, Conversation } from '../types';
+import { Session, NPCSummary, Conversation, NPCSessionSummary } from '../types';
 import { ApiService } from './api.service';
 
 @Injectable({
@@ -76,14 +76,31 @@ export class SessionsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    this.apiService.fetchNPCSummaries(sessionId).pipe(
+    this.apiService.fetchNPCSessionSummaries(sessionId).pipe(
       catchError(err => {
         this.errorSubject.next(err instanceof Error ? err.message : 'Failed to load NPC summaries');
-        return of([]);
+        return of([] as Array<Record<string, any>>);
       }),
       tap(() => this.loadingSubject.next(false))
-    ).subscribe(summaries => {
-      this.npcSummariesSubject.next(summaries);
+    ).subscribe((list) => {
+      // map into existing NPCSummary shape for UI components
+      const mapped: NPCSummary[] = (list || []).map((d: any, idx: number) => {
+        const npcId = String(d['npcId'] ?? d['NpcId'] ?? `npc-${idx}`);
+        const overallTone = String(d['overallTone'] ?? d['OverallTone'] ?? 'neutral');
+        return {
+          id: `${sessionId}-${npcId}`,
+          npcId,
+          npcName: npcId,
+          tone: (overallTone === 'friendly' || overallTone === 'neutral' || overallTone === 'hostile') ? overallTone as 'friendly' | 'neutral' | 'hostile' : 'neutral',
+          overallTone: overallTone,
+          fairnessScore: Number(d['fairnessScore'] ?? d['FairnessScore'] ?? 0),
+          inCharacter: Boolean(d['inCharacter'] ?? d['InCharacter']),
+          escalationTooFast: Boolean(d['escalationTooFast'] ?? d['EscalationTooFast']),
+          summary: String(d['summary'] ?? d['Summary'] ?? '')
+        };
+      });
+
+      this.npcSummariesSubject.next(mapped);
     });
   }
 
