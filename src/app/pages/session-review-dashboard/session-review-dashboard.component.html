@@ -1,0 +1,79 @@
+<div class="min-h-screen bg-background">
+  <div class="dashboard-container">
+    <!-- Header -->
+    <div class="mb-12">
+      <h1 class="text-4xl font-bold text-foreground mb-2">
+        Session Review Dashboard
+      </h1>
+      <p class="text-muted-foreground">
+        Analyze AI NPC behavior and conversation quality across game sessions
+      </p>
+    </div>
+
+    <!-- Error Display -->
+    <div *ngIf="error$ | async as error" class="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
+      <p class="text-red-300 text-sm">{{ error }}</p>
+    </div>
+
+    <!-- Session Selector -->
+    <div *ngIf="(sessions$ | async) as sessions">
+      <app-session-selector
+        *ngIf="sessions.length > 0"
+        [sessions]="sessions"
+        [selectedSessionId]="(selectedSessionId$ | async) || null"
+        (selectSession)="onSelectSession($event)"
+      ></app-session-selector>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="(loading$ | async) && (sessions$ | async)?.length === 0" class="flex items-center justify-center py-12">
+      <div class="text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+        <p class="text-muted-foreground">Loading sessions...</p>
+      </div>
+    </div>
+
+    <!-- NPC Summaries List -->
+    <div *ngIf="(selectedSessionId$ | async) && (npcSummaries$ | async) as summaries">
+      <div *ngIf="summaries.length > 0">
+        <div class="mb-6">
+          <h2 class="text-xl font-semibold text-foreground mb-2">
+            NPC Behavior Summary
+          </h2>
+          <p class="text-sm text-muted-foreground">
+            Review fairness scores, tone, and escalation warnings for each
+            NPC in this session
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <app-npc-row
+            *ngFor="let npc of summaries"
+            [npc]="npc"
+            (viewConversation)="onViewConversation($event)"
+          ></app-npc-row>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="(selectedSessionId$ | async) && (npcSummaries$ | async)?.length === 0 && !(loading$ | async)" class="flex items-center justify-center py-12">
+      <div class="text-center">
+        <p class="text-muted-foreground mb-2">
+          No NPC summaries available for this session
+        </p>
+        <p class="text-sm text-muted-foreground/70">
+          Try selecting a different session
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversation Modal -->
+  <app-view-conversation-modal
+    [isOpen]="isModalOpen"
+    [conversation]="selectedConversation"
+    [isLoading]="isLoadingConversation"
+    (close)="onCloseModal()"
+  ></app-view-conversation-modal>
+</div>

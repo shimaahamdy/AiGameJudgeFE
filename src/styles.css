@@ -1,0 +1,188 @@
+/** @import must precede all other statements */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /**
+   * Tailwind CSS theme - Dark Dashboard Theme
+   * tailwind.config.ts expects the following color variables to be expressed as HSL values.
+   * A different format will require also updating the theme in tailwind.config.ts.
+  */
+  :root {
+    /* Light theme (fallback) */
+    --background: 0 0% 100%;
+    --foreground: 220 13% 13%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 13%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 13%;
+
+    --primary: 220 90% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 13%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+
+    --accent: 220 90% 56%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 90% 56%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 220 13% 13%;
+    --sidebar-primary: 220 90% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 91%;
+    --sidebar-accent-foreground: 220 13% 13%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 220 90% 56%;
+  }
+
+  /* Dark theme (dashboard default) */
+  :root,
+  .dark {
+    --background: 217 32% 10%;
+    --foreground: 220 13% 92%;
+
+    --card: 217 32% 14%;
+    --card-foreground: 220 13% 92%;
+
+    --popover: 217 32% 14%;
+    --popover-foreground: 220 13% 92%;
+
+    --primary: 220 90% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 32% 20%;
+    --secondary-foreground: 220 13% 92%;
+
+    --muted: 217 32% 20%;
+    --muted-foreground: 220 9% 64%;
+
+    --accent: 220 90% 56%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 217 32% 20%;
+    --input: 217 32% 20%;
+    --ring: 220 90% 56%;
+
+    --sidebar-background: 217 32% 10%;
+    --sidebar-foreground: 220 13% 92%;
+    --sidebar-primary: 220 90% 56%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 32% 20%;
+    --sidebar-accent-foreground: 220 13% 92%;
+    --sidebar-border: 217 32% 20%;
+    --sidebar-ring: 220 90% 56%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+  }
+
+  h1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  h2 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+  }
+
+  :where(p, span, li, h1, h2, h3, h4, h5, h6, a, button, label, td, th) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  pre,
+  code {
+    overflow-x: auto;
+    white-space: pre;
+  }
+}
+
+@layer components {
+  .dashboard-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
+  }
+
+  .card-subtle {
+    @apply rounded-lg border border-border bg-card shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  .tone-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .tone-friendly {
+    @apply bg-green-500/20 text-green-400 border border-green-500/30;
+  }
+
+  .tone-neutral {
+    @apply bg-blue-500/20 text-blue-400 border border-blue-500/30;
+  }
+
+  .tone-hostile {
+    @apply bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+
+  .fairness-score {
+    @apply flex items-center gap-2;
+  }
+
+  .fairness-score-bar {
+    @apply flex-1 h-2 bg-muted rounded-full overflow-hidden;
+  }
+
+  .fairness-score-fill {
+    @apply h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all;
+  }
+
+  .message-player {
+    @apply flex justify-end mb-4;
+  }
+
+  .message-npc {
+    @apply flex justify-start mb-4;
+  }
+
+  .message-bubble {
+    @apply max-w-xs lg:max-w-md px-4 py-2 rounded-lg;
+  }
+
+  .message-player-bubble {
+    @apply bg-primary text-primary-foreground rounded-br-none;
+  }
+
+  .message-npc-bubble {
+    @apply bg-muted text-foreground rounded-bl-none;
+  }
+}

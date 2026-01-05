@@ -1,0 +1,78 @@
+<div class="card-subtle p-5 sm:p-6">
+  <div class="flex flex-col gap-4">
+    <!-- Header: Name and Tone -->
+    <div class="flex items-start justify-between gap-4">
+      <div class="flex-1 min-w-0">
+        <h3 class="font-semibold text-foreground break-words">
+          {{ npc.npcName }}
+        </h3>
+        <p class="text-sm text-muted-foreground mt-1">ID: {{ npc.npcId }}</p>
+      </div>
+      <app-npc-badge [tone]="npc.tone"></app-npc-badge>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      <!-- Fairness Score -->
+      <div>
+        <p class="text-xs text-muted-foreground font-medium mb-2">
+          Fairness
+        </p>
+        <div class="fairness-score">
+          <span class="text-lg font-semibold text-foreground">
+            {{ npc.fairnessScore }}
+          </span>
+          <span class="text-xs text-muted-foreground">/10</span>
+        </div>
+        <div class="fairness-score-bar mt-2">
+          <div
+            [class]="'fairness-score-fill bg-gradient-to-r ' + fairnessColor"
+            [style.width.%]="fairnessPercentage"
+          ></div>
+        </div>
+      </div>
+
+      <!-- In-Character Status -->
+      <div>
+        <p class="text-xs text-muted-foreground font-medium mb-2">
+          In-Character
+        </p>
+        <div class="flex items-center">
+          <span
+            [class]="'inline-flex px-2 py-1 rounded text-xs font-medium ' + (npc.inCharacter ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400')"
+          >
+            {{ npc.inCharacter ? "Yes" : "No" }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Message Count -->
+      <div>
+        <p class="text-xs text-muted-foreground font-medium mb-2">
+          Messages
+        </p>
+        <p class="text-lg font-semibold text-foreground">
+          {{ npc.messageCount }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Warnings and Action -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-border">
+      <div *ngIf="npc.escalationTooFast" class="flex items-center gap-2 text-red-400">
+        <svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span class="text-sm font-medium">Escalation Warning</span>
+      </div>
+      <div *ngIf="!npc.escalationTooFast"></div>
+
+      <button
+        (click)="onViewConversation()"
+        class="w-full sm:w-auto px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium"
+      >
+        View Conversation
+      </button>
+    </div>
+  </div>
+</div>
