@@ -1,36 +1,95 @@
 .chat-page {
     max-width: 960px;
+    color: #e6eef8;
+    margin: 0 auto;
+    padding: 12px;
+}
+
+/* Chat window */
+.chat-window {
+    background: #0f1724;
+    /* Slate-900 like */
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: 0 2px 8px rgba(2, 6, 23, 0.6);
+    height: 520px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px;
 }
 
 .chat-window .text-muted {
-    color: #6b7280;
+    color: #94a3b8;
+    /* muted foreground for dark */
+}
+
+.message-player,
+.message-npc {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
 }
 
 .message-player {
-    text-align: right;
+    justify-content: flex-end;
 }
 
 .message-npc {
-    text-align: left;
+    justify-content: flex-start;
 }
 
 .message-bubble {
     display: inline-block;
-    max-width: 85%;
+    max-width: 72%;
 }
 
 .message-player-bubble {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+    background: linear-gradient(90deg, #2563eb, #7c3aed);
+    color: white;
+    padding: 0.6rem 0.8rem;
+    border-radius: 14px 14px 4px 14px;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);
 }
 
 .message-npc-bubble {
-    background: hsl(var(--muted));
-    color: hsl(var(--foreground));
-    padding: 0.5rem;
-    border-radius: 0.5rem;
+    background: #0b1220;
+    /* slightly lighter */
+    color: #dbeafe;
+    padding: 0.6rem 0.8rem;
+    border-radius: 14px 14px 14px 4px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.message-meta {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 6px
+}
+
+/* Message grouping */
+.message-group {
+    margin-bottom: 6px
+}
+
+/* Summary card */
+.agent-summary-card {
+    background: linear-gradient(180deg, rgba(15, 23, 36, 0.6), rgba(8, 10, 15, 0.5));
+    padding: 14px;
+    border-radius: 10px;
+    border-left: 3px solid #2563eb;
+}
+
+/* Empty state */
+.chat-empty {
+    text-align: center;
+    padding: 32px;
+    color: #94a3b8
+}
+
+/* PDF modal */
+.fixed iframe {
+    border: none;
 }
 
 /* PDF preview iframe styling */

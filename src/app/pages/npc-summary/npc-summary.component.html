@@ -1,41 +1,64 @@
-<section>
-    <h1 class="text-2xl font-bold mb-4">NPC Summary</h1>
+<section class="npc-summary-page max-w-7xl mx-auto">
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-bold">NPC Summary</h1>
+        <div class="text-sm text-muted">Overview · Analytics</div>
+    </div>
 
     <div *ngIf="loading" class="text-sm text-muted">Loading...</div>
     <div *ngIf="error" class="text-sm text-destructive">{{ error }}</div>
 
-    <div class="space-y-3">
-        <div *ngFor="let o of overviews" class="p-3 card-subtle">
-            <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                    <div class="font-semibold text-lg">{{ o.npcId }}</div>
-                    <div class="text-sm text-muted mt-1">Sessions: {{ o.totalSessions }} • Avg fairness: {{
-                        o.averageFairness }}</div>
+    <div class="npc-grid grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div *ngFor="let o of overviews" class="npc-card">
+            <div class="npc-card-inner">
+                <!-- Character portrait -->
+                <div class="npc-portrait mb-3">
+                    <img [src]="getCharacterImage(o.npcId)" [alt]="displayName(o.npcId)"
+                        class="w-full h-32 object-cover rounded-lg" />
+                </div>
 
-                    <div class="mt-3 grid grid-cols-3 gap-2 text-sm">
-                        <div class="p-2 rounded bg-muted text-muted-foreground">Friendly: {{
-                            o.toneDistribution?.friendly ?? 0 }}</div>
-                        <div class="p-2 rounded bg-muted text-muted-foreground">Neutral: {{ o.toneDistribution?.neutral
-                            ?? 0 }}</div>
-                        <div class="p-2 rounded bg-muted text-muted-foreground">Hostile: {{ o.toneDistribution?.hostile
-                            ?? 0 }}</div>
+                <div class="npc-header">
+                    <div class="npc-title flex-1">
+                        <div>
+                            <div class="npc-name">{{ displayName(o.npcId) }}</div>
+                            <div class="npc-sub text-sm text-muted">Sessions: {{ o.totalSessions }}</div>
+                        </div>
                     </div>
-
-                    <div class="mt-3 text-sm">
-                        <div>In-character rate: {{ o.inCharacterRate }}</div>
-                        <div>Escalation rate: {{ o.escalationRate }}</div>
+                    <div class="npc-meta">
+                        <div class="tone-pill">{{ dominantToneLabel(o) }}</div>
+                        <div class="fairness-ring" aria-label="Average fairness {{ o.averageFairness }}">
+                            <svg viewBox="0 0 36 36" class="ring-svg">
+                                <path class="ring-bg"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path class="ring-fg" [attr.stroke-dasharray]="(o.averageFairness/10*100) + ',100'"
+                                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="fairness-number">{{ o.averageFairness }}</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="w-32 text-right">
-                    <div class="text-sm">Avg fairness</div>
-                    <div class="mt-2 fairness-score">
-                        <div class="fairness-score-bar">
-                            <div class="fairness-score-fill" [style.width]="(o.averageFairness / 10 * 100) + '%'">&nbsp;
+                <div class="npc-body">
+                    <div class="tone-pills">
+                        <div class="pill friendly">Friendly <span class="count">{{ o.toneDistribution?.friendly ?? 0
+                                }}</span></div>
+                        <div class="pill neutral">Neutral <span class="count">{{ o.toneDistribution?.neutral ?? 0
+                                }}</span></div>
+                        <div class="pill hostile">Hostile <span class="count">{{ o.toneDistribution?.hostile ?? 0
+                                }}</span></div>
+                    </div>
+
+                    <div class="metrics mt-3">
+                        <div class="metric">
+                            <div class="label">In-character</div>
+                            <div class="value"><span class="badge">{{ o.inCharacterRate | number:'1.0-0' }}%</span>
                             </div>
                         </div>
+                        <div class="metric">
+                            <div class="label">Escalation</div>
+                            <div class="value"><span class="badge danger">{{ o.escalationRate | number:'1.0-0'
+                                    }}%</span></div>
+                        </div>
                     </div>
-                    <!-- View button removed by request -->
                 </div>
             </div>
         </div>

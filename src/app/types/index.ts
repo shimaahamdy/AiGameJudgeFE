@@ -72,3 +72,33 @@ export interface Conversation {
   playerName: string;
   messages: Message[];
 }
+
+/**
+ * Charts and report DTOs returned by the developer AI endpoint
+ */
+export interface ChartDto {
+  type: 'bar' | 'pie' | 'line' | string;
+  title: string;
+  labels: string[];
+  values: number[];
+}
+
+export interface ReportDto {
+  fileName: string;
+  // backend sends byte[] which is JSON-serialized as base64 string; allow string or number[]
+  fileContent: string | number[];
+}
+
+export interface ChartsAgentChatResponse {
+  text: string;
+  charts: ChartDto[];
+  report?: ReportDto | null;
+  summary?: string;
+}
+
+export interface DeveloperMessageWithResponseDto {
+  role: string;
+  response: ChartsAgentChatResponse | null;
+  messageText?: string | null;
+  timestamp: string;
+}

@@ -1,7 +1,215 @@
 section {
-    max-width: 900px;
+    max-width: 100%;
+}
+
+.npc-summary-page {
+    padding: 16px;
 }
 
 .text-muted {
-    color: #6b7280;
+    color: #94a3b8;
+}
+
+.npc-grid {
+    /* Grid layout handled by Tailwind classes; this ensures equal-height cards */
+    display: grid;
+    grid-auto-rows: 1fr;
+}
+
+.npc-card {
+    background: #0f1724;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 24px;
+    box-sizing: border-box;
+    min-height: 180px;
+}
+
+.npc-card-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.npc-portrait {
+    width: 100%;
+    height: 128px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+}
+
+.npc-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.npc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+}
+
+.npc-title {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.npc-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+}
+
+.npc-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.npc-sub {
+    color: #94a3b8;
+    font-size: 0.92rem;
+}
+
+.npc-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center
+}
+
+.tone-pill {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 8px;
+    border-radius: 999px;
+    font-size: 12px
+}
+
+.fairness-ring {
+    position: relative;
+    width: 56px;
+    height: 56px;
+}
+
+.ring-svg {
+    transform: rotate(-90deg);
+    width: 56px;
+    height: 56px;
+}
+
+.ring-bg {
+    fill: none;
+    stroke: #0b1220;
+    stroke-width: 3.5;
+}
+
+.ring-fg {
+    fill: none;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke: url(#grad);
+}
+
+.fairness-number {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.npc-body {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 8px;
+}
+
+.tone-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.pill {
+    padding: 8px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+}
+
+.pill .count {
+    margin-left: 6px;
+    opacity: 0.9
+}
+
+.pill.friendly {
+    background: linear-gradient(90deg, #064e3b, #10b981);
+    color: #e6fff5
+}
+
+.pill.neutral {
+    background: linear-gradient(90deg, #334155, #64748b);
+    color: #fff
+}
+
+.pill.hostile {
+    background: linear-gradient(90deg, #6b021f, #ef4444);
+    color: #fff
+}
+
+.metrics {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.metric .label {
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.badge {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+}
+
+.badge.danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ffdddd;
+}
+
+.npc-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end
+}
+
+.btn-ghost {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: #e6eef8;
+    font-weight: 600;
+}
+
+.btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.npc-card:hover {
+    transform: translateY(-4px);
+    transition: transform .15s ease, border-color .15s ease;
+    border-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
 }

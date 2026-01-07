@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -23,6 +23,7 @@ interface ChatMessage {
     time: string;
     charts?: ChartDto[];
     report?: ReportDto | null;
+    summary?: string;
 }
 
 @Component({
@@ -34,12 +35,17 @@ interface ChatMessage {
 })
 export class ReportingAIChatComponent implements OnInit {
     messages: ChatMessage[] = [];
+    @ViewChild('chatWindow') chatWindow!: ElementRef<HTMLDivElement>;
+
+    // pagination / load more
+    currentPage = 1;
+    pageSize = 2;
+    hasMore = true;
 
     draft = '';
     isLoading = false;
     isLoadingMore = false;
-    currentPage = 1;
-    pageSize = 20;
+
 
     // auth / login state
     authUsername = '';
@@ -60,36 +66,85 @@ export class ReportingAIChatComponent implements OnInit {
         });
     }
 
+    // Map backend DeveloperMessageWithResponseDto to ChatMessage
+    private mapApiItemToChatMessage(item: any, id: string): ChatMessage {
+        const role = (item?.Role ?? item?.role ?? 'agent').toLowerCase();
+        const sender: 'user' | 'agent' = role === 'agent' ? 'agent' : 'user';
+
+        let messageText = '';
+        let charts: ChartDto[] = [];
+        let report: ReportDto | null = null;
+        let summary = '';
+
+        if (role === 'agent' && (item?.Response || item?.response)) {
+            const response = item.Response ?? item.response;
+            messageText = String(response?.text ?? response?.Text ?? response?.message ?? response?.Message ?? '');
+            summary = String(response?.summary ?? response?.Summary ?? '');
+            charts = (response?.charts ?? response?.Charts ?? []) as ChartDto[];
+            if (response?.report ?? response?.Report) {
+                const r = response?.report ?? response?.Report;
+                report = {
+                    fileName: r?.fileName ?? r?.FileName ?? 'report.bin',
+                    fileContent: r?.fileContent ?? r?.FileContent ?? null
+                };
+            }
+        } else {
+            messageText = String(item?.MessageText ?? item?.messageText ?? item?.Message ?? item?.message ?? '');
+        }
+
+        return {
+            id: id,
+            sender,
+            text: messageText,
+            time: item?.Timestamp ? new Date(item.Timestamp).toLocaleTimeString() : new Date().toLocaleTimeString(),
+            charts,
+            report,
+            summary
+        };
+    }
+
     ngOnInit() {
         console.log('ReportingAIChatComponent loaded, fetching initial messages');
         this.loadInitialMessages();
     }
 
+    private scrollToBottom(delay = 0) {
+        setTimeout(() => {
+            try {
+                const el = this.chatWindow?.nativeElement;
+                if (el) el.scrollTop = el.scrollHeight;
+            } catch (e) { }
+        }, delay);
+    }
+
     // Load initial messages when component loads
     loadInitialMessages() {
         this.isLoadingMore = true;
+        this.currentPage = 1;
+        this.hasMore = true;
+
         this.api.fetchPreviousMessages(1, this.pageSize).subscribe({
             next: (res) => {
                 console.log('Initial messages loaded:', res);
-                // Convert API response to ChatMessage format
-                const loadedMessages: ChatMessage[] = (res || []).map((item: any, idx: number) => {
-                    const role = (item?.Role ?? item?.role ?? 'agent').toLowerCase();
-                    const sender: 'user' | 'agent' = role === 'developer' ? 'user' : 'agent';
+                // API returns newest-first; map then reverse to chronological order (oldest -> newest)
+                const mapped: ChatMessage[] = (res || []).map((item: any, idx: number) => this.mapApiItemToChatMessage(item, `msg-init-${idx}`));
+                const loadedMessages = mapped.reverse();
 
-                    return {
-                        id: `msg-init-${idx}`,
-                        sender: sender,
-                        text: String(item?.Message ?? item?.message ?? ''),
-                        time: item?.Timestamp ? new Date(item.Timestamp).toLocaleTimeString() : new Date().toLocaleTimeString(),
-                        charts: [],
-                        report: null
-                    };
-                });
-
-                // Set messages to loaded messages, then add welcome message if no messages exist
+                // Set messages to loaded messages, or show welcome if none
                 this.messages = loadedMessages.length > 0 ? loadedMessages : [
-                    { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null }
+                    { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null, summary: '' }
                 ];
+
+                // scroll to bottom to show latest
+                setTimeout(() => {
+                    try {
+                        const el = this.chatWindow?.nativeElement;
+                        if (el) el.scrollTop = el.scrollHeight;
+                    } catch (e) { /* ignore */ }
+                }, 0);
+
+                // if returned less than pageSize, there's no more
+                if (!res || (res as any[]).length < this.pageSize) this.hasMore = false;
 
                 this.isLoadingMore = false;
             },
@@ -97,7 +152,7 @@ export class ReportingAIChatComponent implements OnInit {
                 console.error('Failed to load initial messages:', err);
                 // On error, show welcome message
                 this.messages = [
-                    { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null }
+                    { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null, summary: '' }
                 ];
                 this.isLoadingMore = false;
             }
@@ -122,9 +177,11 @@ export class ReportingAIChatComponent implements OnInit {
             next: (res) => {
                 console.log('API response received:', res);
                 let responseText = '';
+                let summary = '';
                 if (typeof res === 'object' && res !== null) {
                     // Try different case variations
                     responseText = String(res?.text ?? res?.Text ?? res?.message ?? res?.Message ?? '');
+                    summary = String(res?.summary ?? res?.Summary ?? '');
                 } else {
                     responseText = String(res);
                 }
@@ -138,11 +195,13 @@ export class ReportingAIChatComponent implements OnInit {
                     report: res?.report ?? res?.Report ? {
                         fileName: (res?.report ?? res?.Report)?.fileName ?? (res?.report ?? res?.Report)?.FileName ?? 'report.bin',
                         fileContent: (res?.report ?? res?.Report)?.fileContent ?? (res?.report ?? res?.Report)?.FileContent ?? null
-                    } : null
+                    } : null,
+                    summary: summary
                 };
 
                 this.messages.push(agentMsg);
                 this.isLoading = false;
+                this.scrollToBottom(50);
             },
             error: (err) => {
                 console.error('API error:', err);
@@ -152,10 +211,12 @@ export class ReportingAIChatComponent implements OnInit {
                     text: `Error: ${String(err?.message ?? err)}`,
                     time: new Date().toLocaleTimeString(),
                     charts: [],
-                    report: null
+                    report: null,
+                    summary: ''
                 };
                 this.messages.push(agentMsg);
                 this.isLoading = false;
+                this.scrollToBottom(50);
             }
         });
     }
@@ -213,36 +274,43 @@ export class ReportingAIChatComponent implements OnInit {
     // Load previous messages when scrolling to the top
     onScroll(event: Event) {
         const div = event.target as HTMLDivElement;
-        if (div.scrollTop === 0 && !this.isLoadingMore) {
+        if (div.scrollTop <= 40 && !this.isLoadingMore && this.hasMore) {
             this.loadPreviousMessages();
         }
     }
 
     // Fetch previous messages from API
     loadPreviousMessages() {
+        if (!this.chatWindow) return;
+
         this.isLoadingMore = true;
         this.currentPage++;
+        const el = this.chatWindow.nativeElement;
+        const prevScrollHeight = el.scrollHeight;
+        const prevScrollTop = el.scrollTop;
 
         this.api.fetchPreviousMessages(this.currentPage, this.pageSize).subscribe({
             next: (res) => {
                 console.log('Previous messages loaded for page', this.currentPage, ':', res);
-                // Convert API response to ChatMessage format using Role field
-                const previousMessages: ChatMessage[] = (res || []).map((item: any, idx: number) => {
-                    const role = (item?.Role ?? item?.role ?? 'agent').toLowerCase();
-                    const sender: 'user' | 'agent' = role === 'developer' ? 'user' : 'agent';
-
-                    return {
-                        id: `msg-page${this.currentPage}-${idx}`,
-                        sender: sender,
-                        text: String(item?.Message ?? item?.message ?? ''),
-                        time: item?.Timestamp ? new Date(item.Timestamp).toLocaleTimeString() : new Date().toLocaleTimeString(),
-                        charts: [],
-                        report: null
-                    };
-                });
+                // Map and reverse to chronological order for this page
+                const mapped: ChatMessage[] = (res || []).map((item: any, idx: number) => this.mapApiItemToChatMessage(item, `msg-page${this.currentPage}-${idx}`));
+                const previousMessages = mapped.reverse();
 
                 // Prepend previous messages to the beginning
                 this.messages = [...previousMessages, ...this.messages];
+
+                // maintain scroll position so content doesn't jump
+                setTimeout(() => {
+                    try {
+                        const newHeight = el.scrollHeight;
+                        // preserve user's visual position: newTop = newHeight - oldHeight + oldTop
+                        el.scrollTop = (newHeight - prevScrollHeight) + (prevScrollTop || 0);
+                    } catch (e) { /* ignore */ }
+                }, 0);
+
+                // if returned less than pageSize, there's no more
+                if (!res || (res as any[]).length < this.pageSize) this.hasMore = false;
+
                 this.isLoadingMore = false;
             },
             error: (err) => {
@@ -291,13 +359,8 @@ export class ReportingAIChatComponent implements OnInit {
         a.click();
         a.remove();
 
-        // Keep URL for PDF preview; revoke immediately for other file types
-        if (isPdf) {
-            this.pdfPreviewUrl = url;
-            this.pdfPreviewName = fileName;
-        } else {
-            URL.revokeObjectURL(url);
-        }
+        // Always revoke URL immediately; don't show preview modal
+        URL.revokeObjectURL(url);
     }
 
     pdfPreviewUrl: string | null = null;
