@@ -2,6 +2,18 @@
 
 A production-ready Angular application for reviewing AI NPC behavior and conversation quality across game sessions.
 
+**Created with Vibe Coding & Prompt Engineering** 
+
+##  Created With
+
+This project was built using:
+- **Vibe Coding** - Creative vision & UX design direction
+- **Prompt Engineering** - AI-assisted code generation & architecture guidance
+
+A modern approach to web development combining human creativity with intelligent automation.
+
+This project showcases a modern, AI-powered game NPC interaction and analysis platform built entirely through collaborative development combining creative vision with intelligent prompt-driven engineering.
+
 ## Tech Stack
 
 - **Angular 18**: Frontend framework with standalone components
