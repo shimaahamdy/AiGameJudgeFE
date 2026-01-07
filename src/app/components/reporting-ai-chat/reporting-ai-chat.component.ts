@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 interface ChartDto {
     type: 'bar' | 'pie' | 'line' | string;
@@ -31,13 +32,14 @@ interface ChatMessage {
     templateUrl: './reporting-ai-chat.component.html',
     styleUrls: ['./reporting-ai-chat.component.css']
 })
-export class ReportingAIChatComponent {
-    messages: ChatMessage[] = [
-        { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null }
-    ];
+export class ReportingAIChatComponent implements OnInit {
+    messages: ChatMessage[] = [];
 
     draft = '';
     isLoading = false;
+    isLoadingMore = false;
+    currentPage = 1;
+    pageSize = 20;
 
     // auth / login state
     authUsername = '';
@@ -46,26 +48,79 @@ export class ReportingAIChatComponent {
     token: string | null = null;
     isLoggedIn = false;
 
-    constructor(private api: ApiService) {
-        const stored = localStorage.getItem('authToken');
+    constructor(private api: ApiService, private auth: AuthService) {
+        const stored = this.auth.getToken();
         if (stored) {
             this.token = stored;
             this.isLoggedIn = true;
         }
+        this.auth.token$.subscribe((t) => {
+            this.token = t;
+            this.isLoggedIn = !!t;
+        });
+    }
+
+    ngOnInit() {
+        console.log('ReportingAIChatComponent loaded, fetching initial messages');
+        this.loadInitialMessages();
+    }
+
+    // Load initial messages when component loads
+    loadInitialMessages() {
+        this.isLoadingMore = true;
+        this.api.fetchPreviousMessages(1, this.pageSize).subscribe({
+            next: (res) => {
+                console.log('Initial messages loaded:', res);
+                // Convert API response to ChatMessage format
+                const loadedMessages: ChatMessage[] = (res || []).map((item: any, idx: number) => {
+                    const role = (item?.Role ?? item?.role ?? 'agent').toLowerCase();
+                    const sender: 'user' | 'agent' = role === 'developer' ? 'user' : 'agent';
+
+                    return {
+                        id: `msg-init-${idx}`,
+                        sender: sender,
+                        text: String(item?.Message ?? item?.message ?? ''),
+                        time: item?.Timestamp ? new Date(item.Timestamp).toLocaleTimeString() : new Date().toLocaleTimeString(),
+                        charts: [],
+                        report: null
+                    };
+                });
+
+                // Set messages to loaded messages, then add welcome message if no messages exist
+                this.messages = loadedMessages.length > 0 ? loadedMessages : [
+                    { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null }
+                ];
+
+                this.isLoadingMore = false;
+            },
+            error: (err) => {
+                console.error('Failed to load initial messages:', err);
+                // On error, show welcome message
+                this.messages = [
+                    { id: 'm1', sender: 'agent', text: 'Hello — I am the Reporting AI. Ask me about a session or NPC.', time: new Date().toLocaleTimeString(), charts: [], report: null }
+                ];
+                this.isLoadingMore = false;
+            }
+        });
     }
 
     send() {
         const text = this.draft.trim();
-        if (!text) return;
+        console.log('send() called with text:', text);
+        if (!text) {
+            console.log('Text is empty, returning');
+            return;
+        }
         const now = new Date().toLocaleTimeString();
         const userMsg: ChatMessage = { id: 'u' + Date.now(), sender: 'user', text, time: now };
         this.messages.push(userMsg);
         this.draft = '';
         this.isLoading = true;
+        console.log('Calling API with message:', text);
 
         this.api.postReportingAgentChat(text).subscribe({
             next: (res) => {
-                // Handle multiple response formats for text content
+                console.log('API response received:', res);
                 let responseText = '';
                 if (typeof res === 'object' && res !== null) {
                     // Try different case variations
@@ -90,6 +145,7 @@ export class ReportingAIChatComponent {
                 this.isLoading = false;
             },
             error: (err) => {
+                console.error('API error:', err);
                 const agentMsg: ChatMessage = {
                     id: 'a' + Date.now(),
                     sender: 'agent',
@@ -135,7 +191,7 @@ export class ReportingAIChatComponent {
                 const token = m ? m[1].trim() : txt.trim();
                 if (token) {
                     this.token = token as string;
-                    localStorage.setItem('authToken', this.token);
+                    this.auth.setToken(this.token);
                     this.isLoggedIn = true;
                     this.authMessage = 'Login successful.';
                 } else {
@@ -150,10 +206,53 @@ export class ReportingAIChatComponent {
 
     // Logout and clear stored token
     logout() {
-        this.token = null;
-        this.isLoggedIn = false;
-        localStorage.removeItem('authToken');
+        this.auth.clear();
         this.authMessage = 'Logged out.';
+    }
+
+    // Load previous messages when scrolling to the top
+    onScroll(event: Event) {
+        const div = event.target as HTMLDivElement;
+        if (div.scrollTop === 0 && !this.isLoadingMore) {
+            this.loadPreviousMessages();
+        }
+    }
+
+    // Fetch previous messages from API
+    loadPreviousMessages() {
+        this.isLoadingMore = true;
+        this.currentPage++;
+
+        this.api.fetchPreviousMessages(this.currentPage, this.pageSize).subscribe({
+            next: (res) => {
+                console.log('Previous messages loaded for page', this.currentPage, ':', res);
+                // Convert API response to ChatMessage format using Role field
+                const previousMessages: ChatMessage[] = (res || []).map((item: any, idx: number) => {
+                    const role = (item?.Role ?? item?.role ?? 'agent').toLowerCase();
+                    const sender: 'user' | 'agent' = role === 'developer' ? 'user' : 'agent';
+
+                    return {
+                        id: `msg-page${this.currentPage}-${idx}`,
+                        sender: sender,
+                        text: String(item?.Message ?? item?.message ?? ''),
+                        time: item?.Timestamp ? new Date(item.Timestamp).toLocaleTimeString() : new Date().toLocaleTimeString(),
+                        charts: [],
+                        report: null
+                    };
+                });
+
+                // Prepend previous messages to the beginning
+                this.messages = [...previousMessages, ...this.messages];
+                this.isLoadingMore = false;
+            },
+            error: (err) => {
+                console.error('Failed to load previous messages:', err);
+                this.authMessage = `Failed to load previous messages: ${String(err?.message ?? err)}`;
+                this.isLoadingMore = false;
+                // Revert page count on error
+                this.currentPage--;
+            }
+        });
     }
 
     downloadReport(report: ReportDto | undefined | null) {

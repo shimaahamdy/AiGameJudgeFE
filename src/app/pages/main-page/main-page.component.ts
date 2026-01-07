@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-main-page',
@@ -16,7 +17,7 @@ export class MainPageComponent {
     password = '';
     message: string | null = null;
 
-    constructor(private api: ApiService, private router: Router) { }
+    constructor(private api: ApiService, private router: Router, private auth: AuthService) { }
 
     register() {
         if (!this.userName || !this.password) {
@@ -40,7 +41,7 @@ export class MainPageComponent {
                 const m = txt.match(/token:\s*(.+)/i);
                 const token = m ? m[1].trim() : txt.trim();
                 if (token) {
-                    localStorage.setItem('authToken', token as string);
+                    this.auth.setToken(token as string);
                     // navigate to landing page after login
                     this.router.navigateByUrl('/');
                 } else {

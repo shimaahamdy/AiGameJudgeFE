@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-landing-page',
@@ -10,6 +11,10 @@ import { RouterModule } from '@angular/router';
     styleUrls: ['./landing-page.component.css']
 })
 export class LandingPageComponent {
+    isLoggedIn$!: any;
+    constructor(private auth: AuthService) {
+        this.isLoggedIn$ = this.auth.isLoggedIn$;
+    }
     features = [
         {
             icon: '🎮',

@@ -1,6 +1,14 @@
-<div class="app-root" [ngClass]="isLoggedIn() ? 'flex h-screen' : ''">
-    <app-sidebar *ngIf="isLoggedIn()" class="w-64 border-r"></app-sidebar>
-    <main [ngClass]="isLoggedIn() ? 'flex-1 p-6 overflow-auto' : 'w-full'">
+<div class="app-root flex flex-col h-screen">
+    <header class="bg-slate-900 text-white p-4 flex items-center justify-between">
+        <a routerLink="/" class="font-bold">AI Game Judge</a>
+        <div class="flex items-center gap-6">
+            <app-sidebar></app-sidebar>
+            <div *ngIf="(isLoggedIn$ | async)">
+                <button class="px-3 py-1 bg-red-600 rounded text-sm" (click)="logout()">Logout</button>
+            </div>
+        </div>
+    </header>
+    <main class="flex-1 overflow-auto p-6">
         <router-outlet></router-outlet>
     </main>
 </div>

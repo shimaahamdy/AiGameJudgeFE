@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
     selector: 'app-sidebar',
@@ -10,14 +10,9 @@ import { Router, RouterModule } from '@angular/router';
     styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
-    constructor(private router: Router) { }
+    constructor() { }
 
     isLoggedIn(): boolean {
-        return !!localStorage.getItem('authToken');
-    }
-
-    logout() {
-        localStorage.removeItem('authToken');
-        this.router.navigateByUrl('/');
+        return true;
     }
 }

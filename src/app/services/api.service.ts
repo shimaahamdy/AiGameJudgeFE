@@ -129,10 +129,7 @@ export class ApiService {
    */
   postReportingAgentChat(message: string): Observable<any> {
     const payload = { message };
-    // attach bearer token from localStorage if present
-    const token = localStorage.getItem('authToken');
-    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-    return this.http.post<Record<string, any>>('http://localhost:5034/api/reporting-agent/chat', payload, headers ? { headers } : {})
+    return this.http.post<Record<string, any>>('http://localhost:5034/api/reporting-agent/chat', payload)
       .pipe(
         catchError((err) => {
           return throwError(() => new Error(`Failed to call reporting agent: ${err.status || 'Unknown error'}`));
@@ -180,6 +177,19 @@ export class ApiService {
       catchError((err) => {
         const msg = err?.error ?? err?.message ?? `Failed to login: ${err.status || 'Unknown error'}`;
         return throwError(() => new Error(String(msg)));
+      })
+    );
+  }
+
+  /**
+   * Fetch previous messages from DeveloperAi with pagination
+   * GET http://localhost:5034/api/DeveloperAi?page=1&pageSize=20
+   */
+  fetchPreviousMessages(page: number, pageSize: number = 20): Observable<Array<Record<string, any>>> {
+    const url = `http://localhost:5034/api/DeveloperAi?page=${page}&pageSize=${pageSize}`;
+    return this.http.get<Array<Record<string, any>>>(url).pipe(
+      catchError((err) => {
+        return throwError(() => new Error(`Failed to fetch previous messages: ${err.status || 'Unknown error'}`));
       })
     );
   }

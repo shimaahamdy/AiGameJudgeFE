@@ -2,7 +2,13 @@
     <h1 class="text-2xl font-bold mb-4">Reporting AI Agent</h1>
 
     <!-- Authentication is handled on the main landing page. You must be logged in to access reporting features. -->
-    <div class="chat-window border rounded p-4 mb-4 bg-card text-card-foreground" style="height:400px; overflow:auto;">
+    <div class="chat-window border rounded p-4 mb-4 bg-card text-card-foreground" style="height:400px; overflow:auto;"
+        (scroll)="onScroll($event)">
+        <!-- Loading indicator when fetching previous messages -->
+        <div *ngIf="isLoadingMore" class="text-center text-sm text-muted-foreground mb-4 py-2">
+            <span>Loading previous messages...</span>
+        </div>
+
         <div *ngFor="let m of messages" [ngClass]="m.sender === 'user' ? 'message-player mb-3' : 'message-npc mb-3'">
             <div class="message-bubble"
                 [ngClass]="m.sender === 'user' ? 'message-player-bubble' : 'message-npc-bubble'">
@@ -76,10 +82,14 @@
         </div>
     </div>
 
-    <form (ngSubmit)="send()" class="flex gap-2">
-        <input [(ngModel)]="draft" name="message" class="flex-1 p-2 border rounded bg-popover text-popover-foreground"
+    <form (ngSubmit)="send()" class="flex gap-2" #chatForm="ngForm">
+        <input [(ngModel)]="draft" name="message" type="text"
+            class="flex-1 p-2 border rounded bg-popover text-popover-foreground"
             placeholder="Ask the reporting AI..." />
-        <button type="submit" class="px-4 py-2 border rounded bg-sidebar text-sidebar-foreground">Send</button>
+        <button type="submit" [disabled]="isLoading"
+            class="px-4 py-2 border rounded bg-sidebar text-sidebar-foreground disabled:opacity-50">
+            {{ isLoading ? 'Sending...' : 'Send' }}
+        </button>
     </form>
 </section>
 

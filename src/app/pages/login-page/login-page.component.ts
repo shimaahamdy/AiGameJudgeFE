@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-login-page',
@@ -18,7 +19,7 @@ export class LoginPageComponent {
     message: string | null = null;
     isLoading = false;
 
-    constructor(private api: ApiService, private router: Router) { }
+    constructor(private api: ApiService, private router: Router, private auth: AuthService) { }
 
     togglePasswordVisibility() {
         this.showPassword.set(!this.showPassword());
@@ -38,7 +39,7 @@ export class LoginPageComponent {
                 const m = txt.match(/token:\s*(.+)/i);
                 const token = m ? m[1].trim() : txt.trim();
                 if (token) {
-                    localStorage.setItem('authToken', token);
+                    this.auth.setToken(token);
                     // redirect to landing page
                     this.router.navigateByUrl('/');
                 } else {
