@@ -1,6 +1,6 @@
-<div class="app-root flex h-screen">
-    <app-sidebar class="w-64 border-r"></app-sidebar>
-    <main class="flex-1 p-6 overflow-auto">
+<div class="app-root" [ngClass]="isLoggedIn() ? 'flex h-screen' : ''">
+    <app-sidebar *ngIf="isLoggedIn()" class="w-64 border-r"></app-sidebar>
+    <main [ngClass]="isLoggedIn() ? 'flex-1 p-6 overflow-auto' : 'w-full'">
         <router-outlet></router-outlet>
     </main>
 </div>

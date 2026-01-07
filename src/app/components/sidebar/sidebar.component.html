@@ -1,8 +1,14 @@
 <aside class="h-full bg-sidebar text-sidebar-foreground border-r border-sidebar-border p-4">
-    <h2 class="text-lg font-bold mb-4">AI Game Judge</h2>
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold">AI Game Judge</h2>
+        <div>
+            <button *ngIf="isLoggedIn()" (click)="logout()"
+                class="px-2 py-1 rounded bg-destructive text-destructive-foreground text-sm">Logout</button>
+        </div>
+    </div>
     <nav>
         <ul class="space-y-2">
-            <li><a routerLink="/" class="text-sm hover:text-sidebar-primary">Sessions</a></li>
+            <li><a routerLink="/sessions" class="text-sm hover:text-sidebar-primary">Sessions</a></li>
             <li><a routerLink="/npc-summary" class="text-sm hover:text-sidebar-primary">NPC Summary</a></li>
             <li><a routerLink="/reporting-ai" class="text-sm hover:text-sidebar-primary">Reporting AI Agent</a></li>
         </ul>

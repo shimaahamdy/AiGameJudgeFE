@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { Session, NPCSummary, Conversation } from '../types';
@@ -129,7 +129,10 @@ export class ApiService {
    */
   postReportingAgentChat(message: string): Observable<any> {
     const payload = { message };
-    return this.http.post<Record<string, any>>('http://localhost:5034/api/reporting-agent/chat', payload)
+    // attach bearer token from localStorage if present
+    const token = localStorage.getItem('authToken');
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
+    return this.http.post<Record<string, any>>('http://localhost:5034/api/reporting-agent/chat', payload, headers ? { headers } : {})
       .pipe(
         catchError((err) => {
           return throwError(() => new Error(`Failed to call reporting agent: ${err.status || 'Unknown error'}`));
@@ -147,5 +150,37 @@ export class ApiService {
           return throwError(() => new Error(`Failed to fetch NPC session summaries: ${err.status || 'Unknown error'}`));
         })
       );
+  }
+
+  /**
+   * Register a new user
+   * POST http://localhost:5034/api/User
+   * body: { userName: string, password: string }
+   */
+  registerUser(userName: string, password: string): Observable<string> {
+    const url = 'http://localhost:5034/api/User';
+    // Server returns plain text (e.g. Ok("created")), request as text to avoid JSON parse error
+    return this.http.post<string>(url, { userName, password }, { responseType: 'text' as 'json' }).pipe(
+      catchError((err) => {
+        const msg = err?.error ?? err?.message ?? `Failed to register: ${err.status || 'Unknown error'}`;
+        return throwError(() => new Error(String(msg)));
+      })
+    );
+  }
+
+  /**
+   * Login user
+   * POST http://localhost:5034/api/User/Login
+   * returns { token: string }
+   */
+  loginUser(userName: string, password: string): Observable<string> {
+    const url = 'http://localhost:5034/api/User/Login';
+    // Server returns plain text like: token: <jwt>
+    return this.http.post<string>(url, { userName, password }, { responseType: 'text' as 'json' }).pipe(
+      catchError((err) => {
+        const msg = err?.error ?? err?.message ?? `Failed to login: ${err.status || 'Unknown error'}`;
+        return throwError(() => new Error(String(msg)));
+      })
+    );
   }
 }

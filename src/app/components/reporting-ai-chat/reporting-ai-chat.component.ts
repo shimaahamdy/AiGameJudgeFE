@@ -39,7 +39,20 @@ export class ReportingAIChatComponent {
     draft = '';
     isLoading = false;
 
-    constructor(private api: ApiService) { }
+    // auth / login state
+    authUsername = '';
+    authPassword = '';
+    authMessage: string | null = null;
+    token: string | null = null;
+    isLoggedIn = false;
+
+    constructor(private api: ApiService) {
+        const stored = localStorage.getItem('authToken');
+        if (stored) {
+            this.token = stored;
+            this.isLoggedIn = true;
+        }
+    }
 
     send() {
         const text = this.draft.trim();
@@ -52,15 +65,24 @@ export class ReportingAIChatComponent {
 
         this.api.postReportingAgentChat(text).subscribe({
             next: (res) => {
+                // Handle multiple response formats for text content
+                let responseText = '';
+                if (typeof res === 'object' && res !== null) {
+                    // Try different case variations
+                    responseText = String(res?.text ?? res?.Text ?? res?.message ?? res?.Message ?? '');
+                } else {
+                    responseText = String(res);
+                }
+
                 const agentMsg: ChatMessage = {
                     id: 'a' + Date.now(),
                     sender: 'agent',
-                    text: String(res?.Text ?? res?.text ?? ''),
+                    text: responseText,
                     time: new Date().toLocaleTimeString(),
-                    charts: (res?.Charts ?? res?.charts ?? []) as ChartDto[],
-                    report: res?.Report ? {
-                        fileName: res.Report.FileName ?? res.Report.fileName ?? 'report.bin',
-                        fileContent: res.Report.FileContent ?? res.Report.fileContent ?? null
+                    charts: (res?.charts ?? res?.Charts ?? []) as ChartDto[],
+                    report: res?.report ?? res?.Report ? {
+                        fileName: (res?.report ?? res?.Report)?.fileName ?? (res?.report ?? res?.Report)?.FileName ?? 'report.bin',
+                        fileContent: (res?.report ?? res?.Report)?.fileContent ?? (res?.report ?? res?.Report)?.FileContent ?? null
                     } : null
                 };
 
@@ -82,41 +104,100 @@ export class ReportingAIChatComponent {
         });
     }
 
+    // Register a new user
+    register() {
+        if (!this.authUsername || !this.authPassword) {
+            this.authMessage = 'Username and password are required.';
+            return;
+        }
+
+        this.api.registerUser(this.authUsername, this.authPassword).subscribe({
+            next: () => {
+                this.authMessage = 'Registration successful.';
+            },
+            error: (err) => {
+                this.authMessage = String(err?.message ?? err);
+            }
+        });
+    }
+
+    // Login and store token
+    login() {
+        if (!this.authUsername || !this.authPassword) {
+            this.authMessage = 'Username and password are required.';
+            return;
+        }
+
+        this.api.loginUser(this.authUsername, this.authPassword).subscribe({
+            next: (res) => {
+                const txt = String(res ?? '');
+                const m = txt.match(/token:\s*(.+)/i);
+                const token = m ? m[1].trim() : txt.trim();
+                if (token) {
+                    this.token = token as string;
+                    localStorage.setItem('authToken', this.token);
+                    this.isLoggedIn = true;
+                    this.authMessage = 'Login successful.';
+                } else {
+                    this.authMessage = 'Login response did not contain a token.';
+                }
+            },
+            error: (err) => {
+                this.authMessage = String(err?.message ?? err);
+            }
+        });
+    }
+
+    // Logout and clear stored token
+    logout() {
+        this.token = null;
+        this.isLoggedIn = false;
+        localStorage.removeItem('authToken');
+        this.authMessage = 'Logged out.';
+    }
+
     downloadReport(report: ReportDto | undefined | null) {
         if (!report || !report.fileContent) return;
 
-        // fileContent may be base64 string or numeric array
+        // Determine MIME type based on file extension
+        const fileName = report.fileName || 'report.bin';
+        const isPdf = fileName.toLowerCase().endsWith('.pdf');
+        const mimeType = isPdf ? 'application/pdf' : 'application/octet-stream';
+
+        // Convert fileContent from encoded format (base64 string or numeric array) to Blob
         let blob: Blob;
         if (typeof report.fileContent === 'string') {
-            // assume base64
-            const byteChars = atob(report.fileContent);
-            const byteNumbers = new Array(byteChars.length);
-            for (let i = 0; i < byteChars.length; i++) {
-                byteNumbers[i] = byteChars.charCodeAt(i);
+            // Base64 encoded string - decode it
+            const binaryString = atob(report.fileContent);
+            const byteNumbers = new Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                byteNumbers[i] = binaryString.charCodeAt(i);
             }
             const byteArray = new Uint8Array(byteNumbers);
-            blob = new Blob([byteArray]);
+            blob = new Blob([byteArray], { type: mimeType });
         } else if (Array.isArray(report.fileContent)) {
+            // Numeric array - convert directly to Uint8Array
             const byteArray = new Uint8Array(report.fileContent as number[]);
-            blob = new Blob([byteArray]);
+            blob = new Blob([byteArray], { type: mimeType });
         } else {
             return;
         }
 
+        // Create download link and trigger download
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = report.fileName || 'report.bin';
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
         a.remove();
-        // keep URL available for preview if PDF; otherwise revoke immediately
-        if (!(report.fileName || '').toLowerCase().endsWith('.pdf')) {
-            URL.revokeObjectURL(url);
-        } else {
-            // if PDF, set preview URL so user can view inline
+
+        // Keep URL for PDF preview; revoke immediately for other file types
+        if (isPdf) {
             this.pdfPreviewUrl = url;
-            this.pdfPreviewName = report.fileName || 'report.pdf';
+            this.pdfPreviewName = fileName;
+        } else {
+            URL.revokeObjectURL(url);
         }
     }
 

@@ -1,0 +1,76 @@
+<section class="landing-page min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
+    <!-- Hero Section -->
+    <div
+        class="hero min-h-screen flex flex-col items-center justify-center px-4 py-20 text-center relative overflow-hidden">
+        <!-- Animated background blobs -->
+        <div
+            class="absolute top-0 left-10 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
+        </div>
+        <div
+            class="absolute top-0 right-10 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000">
+        </div>
+
+        <h1 class="text-5xl md:text-7xl font-bold mb-6 relative z-10">
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">Performance AI
+                Detector</span>
+        </h1>
+        <p class="text-xl md:text-2xl text-slate-300 mb-12 max-w-3xl relative z-10">
+            Analyze game sessions, detect AI performance issues, and generate intelligent reports with our advanced
+            detection system.
+        </p>
+        <div class="flex gap-4 flex-col sm:flex-row relative z-10">
+            <a routerLink="/login"
+                class="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 font-semibold transition">
+                Sign In
+            </a>
+            <a routerLink="/register"
+                class="px-8 py-3 rounded-lg border-2 border-blue-400 text-blue-300 hover:bg-blue-500/10 font-semibold transition">
+                Get Started
+            </a>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features py-20 px-4 max-w-7xl mx-auto">
+        <h2 class="text-4xl font-bold text-center mb-16">Powerful Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div *ngFor="let feature of features"
+                class="feature-card p-6 rounded-lg bg-slate-800/50 border border-slate-700 hover:border-blue-500 transition">
+                <div class="text-4xl mb-4">{{ feature.icon }}</div>
+                <h3 class="text-xl font-semibold mb-3">{{ feature.title }}</h3>
+                <p class="text-slate-400">{{ feature.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefits Section -->
+    <div class="benefits py-20 px-4 bg-slate-800/50">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-4xl font-bold text-center mb-16">Why Choose AI Judge?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div *ngFor="let benefit of benefits" class="flex items-center gap-4">
+                    <span class="text-2xl text-blue-400">✓</span>
+                    <span class="text-lg">{{ benefit }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="cta py-20 px-4 text-center">
+        <h2 class="text-4xl font-bold mb-6">Ready to Analyze Your Games?</h2>
+        <p class="text-xl text-slate-300 mb-8 max-w-2xl mx-auto">
+            Join us today and unlock powerful insights into your game sessions with our AI-powered detection system.
+        </p>
+        <div class="flex gap-4 justify-center flex-col sm:flex-row">
+            <a routerLink="/login"
+                class="px-8 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 font-semibold transition">
+                Log In
+            </a>
+            <a routerLink="/register"
+                class="px-8 py-3 rounded-lg border-2 border-blue-400 text-blue-300 hover:bg-blue-500/10 font-semibold transition">
+                Create Account
+            </a>
+        </div>
+    </div>
+</section>

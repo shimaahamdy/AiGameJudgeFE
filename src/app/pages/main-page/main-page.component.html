@@ -1,0 +1,18 @@
+<section class="max-w-2xl mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-4">Performance AI Detector</h1>
+    <p class="mb-4">This application analyses game sessions and detects AI performance, fairness and behavior. Please
+        register or login to continue.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <input [(ngModel)]="userName" name="userName" placeholder="Username" class="p-2 border rounded" />
+        <input [(ngModel)]="password" name="password" type="password" placeholder="Password"
+            class="p-2 border rounded" />
+    </div>
+
+    <div class="flex gap-2">
+        <button (click)="login()" class="px-4 py-2 rounded bg-secondary text-secondary-foreground">Log in</button>
+        <button (click)="register()" class="px-4 py-2 rounded bg-primary text-primary-foreground">Register</button>
+    </div>
+
+    <div *ngIf="message" class="mt-3 text-sm text-muted">{{ message }}</div>
+</section>

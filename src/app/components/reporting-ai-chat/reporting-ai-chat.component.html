@@ -1,6 +1,7 @@
 <section class="chat-page max-w-2xl">
     <h1 class="text-2xl font-bold mb-4">Reporting AI Agent</h1>
 
+    <!-- Authentication is handled on the main landing page. You must be logged in to access reporting features. -->
     <div class="chat-window border rounded p-4 mb-4 bg-card text-card-foreground" style="height:400px; overflow:auto;">
         <div *ngFor="let m of messages" [ngClass]="m.sender === 'user' ? 'message-player mb-3' : 'message-npc mb-3'">
             <div class="message-bubble"
@@ -57,13 +58,19 @@
                 </div>
 
                 <!-- Report download -->
-                <div *ngIf="m.report" class="mt-2">
-                    <button (click)="downloadReport(m.report)"
-                        class="px-3 py-1 border rounded bg-sidebar text-sidebar-foreground text-sm">Download
-                        Report</button>
-                    <button *ngIf="(m.report.fileName || '').toLowerCase().endsWith('.pdf')"
-                        (click)="previewReport(m.report)"
-                        class="px-3 py-1 border rounded bg-muted text-muted-foreground text-sm">Preview PDF</button>
+                <div *ngIf="m.report" class="mt-3 p-3 rounded bg-popover text-popover-foreground border border-border">
+                    <div class="text-sm font-semibold mb-2">📄 Report Available</div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button (click)="downloadReport(m.report)"
+                            class="px-3 py-1 border rounded bg-primary text-primary-foreground text-sm hover:opacity-90 cursor-pointer">
+                            ⬇️ Download {{ m.report.fileName || 'Report' }}
+                        </button>
+                        <button *ngIf="(m.report.fileName || '').toLowerCase().endsWith('.pdf')"
+                            (click)="previewReport(m.report)"
+                            class="px-3 py-1 border rounded bg-secondary text-secondary-foreground text-sm hover:opacity-90 cursor-pointer">
+                            👁️ Preview PDF
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,0 +1,20 @@
+.register-page {
+    background-attachment: fixed;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+button[type="submit"],
+button[type="button"] {
+    text-decoration: none;
+}
+
+@media (max-width: 640px) {
+    .bg-slate-800\/50 {
+        border: none;
+        background: rgba(30, 41, 59, 0.7);
+    }
+}
